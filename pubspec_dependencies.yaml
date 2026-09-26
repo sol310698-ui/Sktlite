@@ -1,0 +1,16 @@
+# Bu blok mevcut pubspec.yaml'ın "dependencies:" altına eklenecek.
+# `flutter create skt_takip_lite` ile oluşturduğun projenin pubspec.yaml'ını
+# aç, dependencies: altına şunları ekle (flutter_riverpod, sqflite, path,
+# mobile_scanner, intl):
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^2.5.1
+  sqflite: ^2.3.3
+  path: ^1.9.0
+  mobile_scanner: ^5.2.3
+  intl: ^0.19.0
+
+# Toplam: 4 hafif paket. Eski uygulamadaki AI/Gemini, PDF, erişilebilirlik,
+# overlay, Termux köprüsü, 3D harita paketleri YOK.

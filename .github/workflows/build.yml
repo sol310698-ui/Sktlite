@@ -1,0 +1,64 @@
+name: Build APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Eski artifact temizliği — quota dolmasın (bkz. skt_takip v163 bulgusu)
+      - name: Eski artifact'leri temizle
+        uses: actions/github-script@v7
+        continue-on-error: true
+        with:
+          script: |
+            const runId = context.runId;
+            let page = 1;
+            const toDelete = [];
+            while (true) {
+              const res = await github.rest.actions.listWorkflowRunArtifacts({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                run_id: runId,
+                per_page: 100,
+                page,
+              });
+              if (res.data.artifacts.length === 0) break;
+              toDelete.push(...res.data.artifacts);
+              page++;
+            }
+            for (const artifact of toDelete) {
+              await github.rest.actions.deleteArtifact({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                artifact_id: artifact.id,
+              });
+            }
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+
+      - run: flutter pub get
+
+      # Basit sürüm: imzasız release APK. Keystore imzalama istersen
+      # eski skt_takip deposundaki key.properties + signingConfigs
+      # kalıbını buraya taşı ve secrets.* ile besle.
+      - run: flutter build apk --release
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: skt-takip-lite-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 5
+          compression-level: 0
